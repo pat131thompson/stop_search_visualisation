@@ -72,6 +72,6 @@ button {
     position: relative; 
     left: 50%;
     transform: translateX(-50%);
-    height: 600px; 
-    width: 800px; 
+    height: 65em; 
+    width: 85em; 
 }
