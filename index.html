@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Stats Plotter</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gentium+Plus&family=Merriweather&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Leaflet JS  -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- JS script for form and map load -->
+    <script src="form.js" defer></script>
+    <!-- JS script resetting form and map -->
+     <script src="reset.js" defer></script>
+
+</head>
+<body>
+    
+    <h1>Review Stop Search Statistics</h1>
+    <h2>Stop and Search data visualised</h2>
+    <div id="header">
+    <p>This web app allows you to search and visualise "stop and search" data in monthly slices for English police forces.</p>
+    <p>Please use the form below to select Constabulary and time slice you require.</p>
+    </div>
+    <form id="police-form">
+        <!-- Constabulary Dropdown -->
+        <label for="police-forces">Select a Constabulary</label>
+        <select id="police-forces" name="police-forces">
+            <option value="">-- Select Constabulary --</option>
+        </select>
+        
+        <!-- Year Selector -->
+        <label for="year">Select Year:</label>
+        <select id="year" name="year">
+            <option value="">-- Select Year --</option>
+        </select>
+                
+        <!-- Month Selector -->
+        <label for="month">Select Month:</label>
+        <select id="month" name="month">
+            <option value="">-- Select Month --</option>
+        </select>
+                
+        <button type="submit">Get Data</button>
+    </form>
+    <div id="api-info">
+    <p>URL needed for API Call: <span id="api-url"></span></p>
+
+    <button id="reset">Reset search and map</button>
+    </div>
+    <!-- Map Container -->
+    <div id="map"></div>
+    
+</body>
+</html>
