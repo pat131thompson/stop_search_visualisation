@@ -17,6 +17,10 @@
     <link rel="stylesheet" href="styles.css" />
     <!-- Leaflet JS  -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Chart JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- JS script for chart loads -->
+    <script src="charts.js" defer></script>
     <!-- JS script for form and map load -->
     <script src="form.js" defer></script>
     <!-- JS script resetting form and map -->
@@ -59,6 +63,16 @@
     </div>
     <!-- Map Container -->
     <div id="map"></div>
+
+<h2>Ethnic Breakdown</h2>
+<div class="chart-container">
+<canvas id="ethnicityChart"></canvas>
+</div>
+
+<h2>Search Outcomes</h2>
+<div class="chart-container">
+<canvas id="outcomeChart"></canvas>
+</div>
     
 </body>
 </html>

@@ -10,7 +10,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const monthDropdown = document.getElementById("month");
     const apiUrlDisplay = document.getElementById("api-url");
 
-    // Constabularies
+    // Chart.js canvas elements
+    const ethnicityChartCanvas = document.getElementById("ethnicityChart");
+    const outcomeChartCanvas = document.getElementById("outcomeChart");
+
+    // Chart instances stored globally
+    let ethnicityChart, outcomeChart;
+
+    // Constabularies list
     const policeForces = [
         { "id": "avon-and-somerset", "name": "Avon and Somerset Constabulary" },
         { "id": "bedfordshire", "name": "Bedfordshire Police" },
@@ -58,114 +65,92 @@ document.addEventListener("DOMContentLoaded", function () {
         { "id": "wiltshire", "name": "Wiltshire Police" }
     ];
 
-    // Populate year dropdown (2022 to 2024)
-    const startYear = 2022;
-    const endYear = 2024;
-
-
-    // Populate month dropdown (Jan - Dec)
-    const months = [
-        { value: "01", name: "January" },
-        { value: "02", name: "February" },
-        { value: "03", name: "March" },
-        { value: "04", name: "April" },
-        { value: "05", name: "May" },
-        { value: "06", name: "June" },
-        { value: "07", name: "July" },
-        { value: "08", name: "August" },
-        { value: "09", name: "September" },
-        { value: "10", name: "October" },
-        { value: "11", name: "November" },
-        { value: "12", name: "December" }
-    ];
-
-    // Populate police forces dropdown
+    // Populate dropdowns
     policeForces.forEach(force => {
-        const option = document.createElement("option");
-        option.value = force.id;
-        option.textContent = force.name;
-        dropdown.appendChild(option);
+        dropdown.innerHTML += `<option value="${force.id}">${force.name}</option>`;
     });
 
-    // Populate year dropdown
-    for (let year = endYear; year >= startYear; year--) {
-        const option = document.createElement("option");
-        option.value = year;
-        option.textContent = year;
-        yearDropdown.appendChild(option);
+    for (let year = 2024; year >= 2022; year--) {
+        yearDropdown.innerHTML += `<option value="${year}">${year}</option>`;
     }
 
-    // Populate month dropdown
+    const months = [
+        { value: "01", name: "January" }, { value: "02", name: "February" },
+        { value: "03", name: "March" }, { value: "04", name: "April" },
+        { value: "05", name: "May" }, { value: "06", name: "June" },
+        { value: "07", name: "July" }, { value: "08", name: "August" },
+        { value: "09", name: "September" }, { value: "10", name: "October" },
+        { value: "11", name: "November" }, { value: "12", name: "December" }
+    ];
+
     months.forEach(month => {
-        const option = document.createElement("option");
-        option.value = month.value;
-        option.textContent = month.name;
-        monthDropdown.appendChild(option);
+        monthDropdown.innerHTML += `<option value="${month.value}">${month.name}</option>`;
     });
 
-    // Create map (but don't display until data is fetched)
-    const map = L.map('map').setView([51.50, 0.1272], 6); // Default to central London
-
-    // Use OpenStreetMap tiles (you can replace with Mapbox if needed)
+    // Initialize Leaflet Map
+    const map = L.map('map').setView([51.50, 0.1272], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    
-    // Event listener for form submission
+    // Form submission event
     form.addEventListener("submit", function (event) {
-        event.preventDefault(); // Prevent form from refreshing the page
+        event.preventDefault();
 
-    // Get selected values
-    const selectedForce = dropdown.value;
-    const selectedYear = yearDropdown.value;
-    const selectedMonth = monthDropdown.value;
+        const apiUrl = `https://data.police.uk/api/stops-force?force=${dropdown.value}&date=${yearDropdown.value}-${monthDropdown.value}`;
+        apiUrlDisplay.textContent = apiUrl;
 
-    // Construct the API URL
-    const apiUrl = `https://data.police.uk/api/stops-force?force=${selectedForce}&date=${selectedYear}-${selectedMonth}`;
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    alert("No data available.");
+                    return;
+                }
 
-    // Display API call in the browser
-    apiUrlDisplay.textContent = apiUrl;
-    apiUrlDisplay.style.fontWeight = "bold";
-    apiUrlDisplay.style.color = "blue";
+                // Clear markers
+                map.eachLayer(layer => { if (layer instanceof L.Marker) map.removeLayer(layer); });
 
-    // Fetch data from the API
-    fetch(apiUrl)
-    .then(response => response.json())
-    .then(data => {
-        console.log("Data fetched:", data);
-        if (data.length === 0) {
-            alert("No data available for this selection.");
-            return;
-        }
+                // Plot locations
+                data.forEach(item => {
+                    if (item.location) {
+                        L.marker([item.location.latitude, item.location.longitude])
+                            .addTo(map)
+                            .bindPopup(`<b>Object:</b> ${item.object_of_search}<br><b>Outcome:</b> ${item.outcome}`);
+                    }
+                });
 
-        // Clear previous markers
-        map.eachLayer(function (layer) {
-            if (layer instanceof L.Marker) {
-                map.removeLayer(layer);
-            }
-        });
-
-        // Loop through the data and plot on the map
-        data.forEach(item => {
-            if (item.location && item.location.latitude && item.location.longitude) {
-                const latitude = item.location.latitude;
-                const longitude = item.location.longitude;
-
-                // Create a marker on the map for each stop
-                L.marker([latitude, longitude]).addTo(map)
-                    .bindPopup(`<b>Object of Search:</b> ${item.object_of_search}
-                        <br><b>Outcome:</b> ${item.outcome}
-                        <br><b>Ethnicity:</b> ${item.self_defined_ethnicity}
-                        <br><b>Gender:</b> ${item.gender}`)
-                    .openPopup();
-            }
-        });
-    })
-    .catch(error => {
-        console.error("Error fetching data:", error);
+                updateCharts(data);
+            })
+            .catch(error => console.error("Error fetching data:", error));
     });
-});
 
+    function updateCharts(data) {
+        const ethnicityCounts = {};
+        const outcomeCounts = {};
+
+        data.forEach(item => {
+            ethnicityCounts[item.self_defined_ethnicity] = (ethnicityCounts[item.self_defined_ethnicity] || 0) + 1;
+            outcomeCounts[item.outcome] = (outcomeCounts[item.outcome] || 0) + 1;
+        });
+
+        // Make the charts visible
+        document.querySelectorAll('.chart-container').forEach(chart => {
+            chart.style.display = "flex";  // Show charts
+        });
+
+        createChart("ethnicityChart", "Ethnicity Breakdown", Object.keys(ethnicityCounts), Object.values(ethnicityCounts));
+        createChart("outcomeChart", "Outcomes", Object.keys(outcomeCounts), Object.values(outcomeCounts));
+    }
+
+    function createChart(canvasId, title, labels, data) {
+        if (window[canvasId] instanceof Chart) {
+            window[canvasId].destroy();
+        }
+        window[canvasId] = new Chart(document.getElementById(canvasId), {
+            type: "bar",
+            data: { labels, datasets: [{ label: title, data, backgroundColor: "blue" }] },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
 });
-    

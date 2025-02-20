@@ -68,10 +68,28 @@ button {
 
 #map { 
     border: 2px solid #082630;
-    border-radius: 8px;
+    border-radius: 12px;
     position: relative; 
     left: 50%;
     transform: translateX(-50%);
-    height: 65em; 
-    width: 85em; 
+    height: 55em; 
+    width: 75em; 
+}
+
+.chart-container {
+    display: none;
+    height: 55em;
+    margin: 10px auto; 
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+canvas {
+    max-width: 80%; 
+    max-height: 80%;
+    border: 2px solid #082630;
+    border-radius: 12px;
+    background: #bababe;
+    padding: 10px; 
 }
